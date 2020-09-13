@@ -98,7 +98,19 @@ int pthread_mutex_unlock(pthread_mutex_t *mutex);
 
 ##### 11.6.6 条件变量
 
+```c
+#include <pthread.h>
 
+// 等待cond解锁
+int pthread_cond_wait(pthread_cond_t *restrict cond, pthread_mutex_t *restrict mutex);
+int pthread_cond_timedwait(pthread_cond_t *restrict cond, pthread_mutex_t *restrict mutex, 
+                            const struct timespec *restrict tsptr);
+
+// 发给至少一个线程
+int pthread_cond_signal(pthread_cond_t *cond);
+// 发给所有
+int pthread_cond_broadcast(pthread_cond_t *cond);
+```
 
 ##### 11.6.7 自旋锁
 
