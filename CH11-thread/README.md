@@ -132,7 +132,20 @@ int pthread_cond_broadcast(pthread_cond_t *cond);
 
 ##### 11.6.8 屏障
 
+# 补充
 
+#### 信号量
+
+> 参见 `sem_primer`
+
+#### 线程属性
+
+```c
+#include <pthread.h>
+
+int pthread_attr_init(pthread_attr_t *attr);
+int pthread_attr_destroy(pthread_attr_t *attr);
+```
 
 
 

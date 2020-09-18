@@ -1,7 +1,10 @@
 #include <errno.h>
 #include <fcntl.h>
+#include <poll.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <sys/poll.h>
+#include <sys/select.h>
 #include <unistd.h>
 
 #define TTY1 "/dev/tty11"
@@ -53,9 +56,16 @@ int main(void)
     exit(0);
 }
 
+static int max(int a, int b)
+{
+    return a > b ? a : b;
+}
+
 static void relay(int fd1, int fd2)
 {
     int fd_save1, fd_save2;
+    fd_set rset, wset;
+    struct pollfd pfd[2];
 
     fd_save1 = fcntl(fd1, F_GETFL);
     fcntl(fd1, F_SETFL, fd_save1 | O_NONBLOCK);
@@ -72,9 +82,36 @@ static void relay(int fd1, int fd2)
     fsm21.sfd = fd2;
     fsm21.dfd = fd1;
 
+    pfd[0].fd = fd1;
+    pfd[1].fd = fd2;
+
     while (fsm12.state != STATE_T || fsm21.state != STATE_T) {
-        fsm_driver(&fsm12);
-        fsm_driver(&fsm21);
+
+        pfd[0].events = 0;
+        pfd[1].events = 0;
+
+        if (fsm12.state == STATE_R)
+            pfd[0].events |= POLLIN;
+        if (fsm21.state == STATE_W)
+            pfd[0].events |= POLLOUT;
+        if (fsm12.state == STATE_W)
+            pfd[1].events |= POLLOUT;
+        if (fsm21.state == STATE_R)
+            pfd[1].events |= POLLIN;
+
+        if (fsm12.state < STATE_Ex || fsm21.state < STATE_Ex) {
+            while (poll(pfd, 2, -1) < 0) {
+                if (errno == EINTR)
+                    continue;
+                perror("poll");
+                exit(1);
+            }
+        }
+
+        if (pfd[0].revents & POLLIN || pfd[1].revents & POLLOUT || fsm12.state >= STATE_Ex)
+            fsm_driver(&fsm12);
+        if (pfd[1].revents & POLLIN || pfd[0].revents & POLLOUT || fsm21.state >= STATE_Ex)
+            fsm_driver(&fsm21);
     }
 
     fcntl(fd1, F_SETFL, fd_save1);

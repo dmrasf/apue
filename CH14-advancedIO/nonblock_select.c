@@ -2,6 +2,7 @@
 #include <fcntl.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <sys/select.h>
 #include <unistd.h>
 
 #define TTY1 "/dev/tty11"
@@ -53,9 +54,15 @@ int main(void)
     exit(0);
 }
 
+static int max(int a, int b)
+{
+    return a > b ? a : b;
+}
+
 static void relay(int fd1, int fd2)
 {
     int fd_save1, fd_save2;
+    fd_set rset, wset;
 
     fd_save1 = fcntl(fd1, F_GETFL);
     fcntl(fd1, F_SETFL, fd_save1 | O_NONBLOCK);
@@ -73,8 +80,33 @@ static void relay(int fd1, int fd2)
     fsm21.dfd = fd1;
 
     while (fsm12.state != STATE_T || fsm21.state != STATE_T) {
-        fsm_driver(&fsm12);
-        fsm_driver(&fsm21);
+        FD_ZERO(&rset);
+        FD_ZERO(&wset);
+
+        if (fsm12.state == STATE_R)
+            FD_SET(fsm12.sfd, &rset);
+        if (fsm12.state == STATE_W)
+            FD_SET(fsm12.dfd, &wset);
+        if (fsm21.state == STATE_R)
+            FD_SET(fsm21.sfd, &rset);
+        if (fsm21.state == STATE_W)
+            FD_SET(fsm21.dfd, &wset);
+
+        if (fsm12.state < STATE_Ex || fsm21.state < STATE_Ex) {
+            if (select(max(fd1, fd2) + 1, &rset, &wset, NULL, NULL) < 0) {
+                if (errno == EINTR)
+                    continue;
+                perror("select");
+                exit(1);
+            }
+        }
+
+        if (FD_ISSET(fsm12.sfd, &rset) || FD_ISSET(fsm12.dfd, &wset)
+            || fsm12.state >= STATE_Ex)
+            fsm_driver(&fsm12);
+        if (FD_ISSET(fsm21.sfd, &rset) || FD_ISSET(fsm21.dfd, &wset)
+            || fsm21.state >= STATE_Ex)
+            fsm_driver(&fsm21);
     }
 
     fcntl(fd1, F_SETFL, fd_save1);
