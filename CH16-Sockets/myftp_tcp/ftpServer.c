@@ -14,12 +14,13 @@
 #include <sys/socket.h>
 #include <sys/stat.h>
 #include <sys/types.h>
+#include <sys/wait.h>
 #include <time.h>
 #include <unistd.h>
 
 #define IPSTRSIZE 40
 #define BUFSIZE 1024
-#define FORKNUM 10
+#define FORKNUM 5
 
 static int sd;
 static __sighandler_t hander_before;
@@ -39,6 +40,7 @@ int main(void)
     struct sockaddr_in laddr, raddr;
     socklen_t raddr_len;
     char ipstr[IPSTRSIZE];
+    int i;
     int pid;
 
     hander_before = signal(SIGINT, sig_hander);
@@ -70,28 +72,33 @@ int main(void)
     }
     raddr_len = sizeof(raddr);
 
-    while (1) {
-        newsd = accept(sd, (void*)&raddr, &raddr_len);
-        if (newsd < 0) {
-            perror("accept");
-            exit(1);
-        }
-
+    for (i = 0; i < FORKNUM; i++) {
         pid = fork();
         if (pid < 0) {
             perror("fork");
             exit(1);
         }
         if (pid == 0) {
-            close(sd);
-            inet_ntop(AF_INET, &raddr.sin_addr.s_addr, ipstr, IPSTRSIZE);
-            printf("=========FROM: %s:%d========\n", ipstr, ntohs(raddr.sin_port));
+            while (1) {
+                newsd = accept(sd, (void*)&raddr, &raddr_len);
+                if (newsd < 0) {
+                    perror("accept");
+                    exit(1);
+                }
 
-            server(newsd);
-            close(newsd);
+                inet_ntop(AF_INET, &raddr.sin_addr.s_addr, ipstr, IPSTRSIZE);
+                printf("=========[%d]=%s:%d========\n", getpid(), ipstr, ntohs(raddr.sin_port));
+
+                server(newsd);
+                close(newsd);
+            }
             exit(0);
         }
         close(newsd);
+    }
+
+    for (i = 0; i < FORKNUM; i++) {
+        wait(NULL);
     }
 
     exit(0);
@@ -108,8 +115,5 @@ static void server(int sd)
         perror("send");
         exit(1);
     }
-
-    sleep(10);
-
-    puts("Done!");
+    printf("[%d]=Done\n", getpid());
 }
