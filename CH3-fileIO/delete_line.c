@@ -1,3 +1,7 @@
+/*
+ * 给一个文件名和一个行数 删除那一行
+ */
+
 #include <fcntl.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -8,7 +12,7 @@
 
 int main(int argc, char* argv[])
 {
-    if (argc != 2) {
+    if (argc != 3) {
         fprintf(stderr, "usage: ./a.out pathname");
         exit(1);
     }
@@ -28,15 +32,17 @@ int main(int argc, char* argv[])
     // seek2 那一行第一个字符位置
     off_t seek1 = 0, seek2 = 0;
 
-    FILE *fp = NULL;
+    FILE* fp = NULL;
     if ((fp = fopen(argv[1], "r")) == NULL) {
         perror("fopen() error");
         exit(1);
     }
+
     // 获取换行符位置
-    char *linebuf = NULL;
+    char* linebuf = NULL;
     size_t bufsize = 0;
-    int line = 2;
+    int line = atoi(argv[2]);
+
     while (line--) {
         ssize_t linesize = 0;
         linesize = getline(&linebuf, &bufsize, fp);
@@ -62,6 +68,7 @@ int main(int argc, char* argv[])
     char buf[BUFSIZE];
     int cnt, ret, pos;
 
+    // 从下一行开始向上覆盖写
     while ((cnt = read(fd1, buf, BUFSIZE)) > 0) {
         pos = 0;
         while (cnt > 0) {
@@ -77,7 +84,7 @@ int main(int argc, char* argv[])
     close(fd1);
     close(fd2);
 
-    // 截断去那一行的长度
+    // 截断去最后那一行的长度
     if (truncate(argv[1], count) == -1) {
         perror("truncate error\n");
         exit(1);

@@ -1,19 +1,23 @@
-#include "../apue.h"
 #include <fcntl.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 int main(int argc, char* argv[])
 {
     int val, fd;
 
-    if (argc != 2)
-        err_quit("usage: a.out <descriptor#>");
+    if (argc != 2) {
+        fprintf(stderr, "Usage...\n");
+        exit(1);
+    }
 
     fd = open(argv[1], O_WRONLY,
         S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH);
 
-    if ((val = fcntl(fd, F_GETFL, 0)) < 0)
-        err_sys("fcntl error for fd %d", atoi(argv[1]));
+    if ((val = fcntl(fd, F_GETFL, 0)) < 0) {
+        perror("fcntl()");
+        exit(1);
+    }
 
     printf("val: %#x\n", val);
     printf("O_ACCMODE: %x\n", O_ACCMODE);
@@ -35,7 +39,7 @@ int main(int argc, char* argv[])
         break;
 
     default:
-        err_dump("unknown access mode");
+        exit(1);
     }
 
     if (val & O_APPEND)

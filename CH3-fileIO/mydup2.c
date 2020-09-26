@@ -1,4 +1,3 @@
-#include "../apue.h"
 #include <fcntl.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -20,8 +19,10 @@ int main(int argc, char* argv[])
     fd2 = mydup2(fd, 6);
     printf("fd2: %d\n", fd2);
 
-    if (write(fd2, "hello world!\n", 13) == -1)
-        err_quit("write error");
+    if (write(fd2, "hello world!\n", 13) == -1) {
+        perror("write()");
+        exit(1);
+    }
 
     return 0;
 }
@@ -55,8 +56,10 @@ int mydup2(int fd, int fd2)
     struct Node* head = (struct Node*)malloc(sizeof(struct Node));
     struct Node* cur = head;
 
-    if (fd2 > MAXFD || fd2 < 3)
-        err_quit("fd2 error");
+    if (fd2 > MAXFD || fd2 < 3) {
+        fprintf(stderr, "fd\n");
+        exit(1);
+    }
 
     while ((newfd = dup(fd)) < fd2) {
         printf("create newfd: %d\n", newfd);

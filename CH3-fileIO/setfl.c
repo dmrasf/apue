@@ -1,5 +1,6 @@
-#include "../apue.h"
 #include <fcntl.h>
+#include <stdio.h>
+#include <stdlib.h>
 
 void get_flag(int fd);
 void set_fl(int fd, int flags);
@@ -8,8 +9,10 @@ int main(int argc, char* argv[])
 {
     int fd;
 
-    if (argc != 2)
-        err_quit("usage: a.out <descriptor#>");
+    if (argc != 2) {
+        fprintf(stderr, "Usage\n");
+        exit(1);
+    }
 
     fd = open(argv[1], O_WRONLY,
         S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH);
@@ -27,21 +30,27 @@ void set_fl(int fd, int flags) /* flags are file status flags to turn on */
 {
     int val;
 
-    if ((val = fcntl(fd, F_GETFL, 0)) < 0)
-        err_sys("fcntl F_GETFL error");
+    if ((val = fcntl(fd, F_GETFL, 0)) < 0) {
+        perror("fcntl");
+        exit(1);
+    }
 
     val |= flags; /* turn on flags */
 
-    if (fcntl(fd, F_SETFL, val) < 0)
-        err_sys("fcntl F_SETFL error");
+    if (fcntl(fd, F_SETFL, val) < 0) {
+        perror("fcntl");
+        exit(1);
+    }
 }
 
 void get_flag(int fd)
 {
     int val;
 
-    if ((val = fcntl(fd, F_GETFL, 0)) < 0)
-        err_sys("fcntl error for fd");
+    if ((val = fcntl(fd, F_GETFL, 0)) < 0) {
+        perror("fcntl");
+        exit(1);
+    }
 
     switch (val & O_ACCMODE) {
     case O_RDONLY:
@@ -57,7 +66,7 @@ void get_flag(int fd)
         break;
 
     default:
-        err_dump("unknown access mode");
+        exit(1);
     }
 
     printf("val: %#x\n", val);

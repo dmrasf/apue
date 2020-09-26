@@ -1,4 +1,3 @@
-#include "../apue.h"
 #include <fcntl.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -14,14 +13,19 @@ static void closefd(void) {
 
 int main(int argc, char* argv[])
 {
-    if (argc != 3)
-        err_quit("usage: ./a.out <file1> <file2>\n");
+    if (argc != 3) {
+        fprintf(stderr, "Usage\n");
+        exit(1);
+    }
 
-    if ((fd1 = open(argv[1], O_RDONLY)) < 0)
-        err_quit("read %s error\n", argv[1]);
+    if ((fd1 = open(argv[1], O_RDONLY)) < 0) {
+        perror("open()");
+        exit(1);
+    }
     atexit(closefd);
     if ((fd2 = open(argv[2], O_RDWR | O_CREAT, 0600)) < 0) {
-        err_quit("creat %s error\n", argv[2]);
+        perror("open()");
+        exit(1);
     }
 
     char buf[BUFSIZE];

@@ -1,7 +1,3 @@
-/*
- *  ./a.out file.hole r10 s5 w32
- */
-#include "../apue.h"
 #include "get_num.h"
 #include <ctype.h>
 #include <fcntl.h>
@@ -20,14 +16,18 @@ int main(int argc, char* argv[])
     char* buf;
     ssize_t numRead, numWrite;
 
-    if (argc < 3 || strcmp(argv[1], "--help") == 0)
-        err_quit("%s file {r<length>|R<length>|w<string>|s<offset>}...\n", argv[0]);
+    if (argc < 3 || strcmp(argv[1], "--help") == 0) {
+        fprintf(stderr, "Usage\n");
+        exit(1);
+    }
 
     fd = open(argv[1], O_RDWR | O_CREAT,
         S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH);
 
-    if (fd == -1)
-        err_quit("open");
+    if (fd == -1) {
+        fprintf(stderr, "fd\n");
+        exit(1);
+    }
 
     for (ap = 2; ap < argc; ap++) {
         switch (argv[ap][0]) {
@@ -35,12 +35,16 @@ int main(int argc, char* argv[])
         case 'R':
             len = getLong(&argv[ap][1], GN_ANY_BASE, argv[ap]);
             buf = malloc(len);
-            if (buf == NULL)
-                err_quit("malloc");
+            if (buf == NULL) {
+                fprintf(stderr, "malloc()\n");
+                exit(1);
+            }
 
             numRead = read(fd, buf, len);
-            if (numRead == -1)
-                err_quit("read");
+            if (numRead == -1) {
+                perror("read");
+                exit(1);
+            }
 
             if (numRead == 0) {
                 printf("%s: end-of-file\n", argv[ap]);
@@ -60,20 +64,24 @@ int main(int argc, char* argv[])
 
         case 'w':
             numWrite = write(fd, &argv[ap][1], strlen(&argv[ap][1]));
-            if (numWrite == -1)
-                err_quit("write");
+            if (numWrite == -1) {
+                perror("write()");
+                exit(1);
+            }
             printf("%s: wrote %ld bytes\n", argv[ap], (long)numWrite);
             break;
 
         case 's':
             offset = getLong(&argv[ap][1], GN_ANY_BASE, argv[ap]);
-            if (lseek(fd, offset, SEEK_SET) == -1)
-                err_quit("lseek");
+            if (lseek(fd, offset, SEEK_SET) == -1) {
+                perror("lseek");
+                exit(1);
+            }
             printf("%s: seek succeeded\n", argv[ap]);
             break;
 
         default:
-            err_quit("cmd error");
+            exit(1);
         }
     }
 
