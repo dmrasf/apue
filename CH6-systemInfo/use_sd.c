@@ -23,6 +23,7 @@ int main(int argc, char* argv[])
     }
 
     char* cpass;
+    // 编译时要加 -lcrypt
     cpass = crypt(pass, spd->sp_pwdp);
     if (strcmp(cpass, spd->sp_pwdp) == 0)
         puts("right");

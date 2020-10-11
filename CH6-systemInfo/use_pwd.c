@@ -3,12 +3,23 @@
 #include <stdio.h>
 #include <string.h>
 
+static struct passwd* my_getpwnam(const char* name)
+{
+    struct passwd* ptr;
+
+    setpwent();
+    while ((ptr = getpwent()) != NULL)
+        if (strcmp(name, ptr->pw_name) == 0)
+            break;
+    endpwent();
+    return ptr;
+}
+
 int main(void)
 {
     struct passwd* pwd;
 
-    /*pwd = getpwnam("dmr");*/
-    /*pwd = getpwuid(0);*/
+    pwd = my_getpwnam("dmr");
 
     printf("%s\n", pwd->pw_dir);
     printf("%s\n", pwd->pw_gecos);
@@ -19,16 +30,4 @@ int main(void)
     printf("%s\n", pwd->pw_passwd);
 
     return 0;
-}
-
-struct passwd* my_getpwnam(const char* name)
-{
-    struct passwd* ptr;
-
-    setpwent();
-    while ((ptr = getpwent()) != NULL)
-        if (strcmp(name, ptr->pw_name) == 0)
-            break;
-    endpwent();
-    return ptr;
 }

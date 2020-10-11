@@ -31,6 +31,8 @@ void setpwent(void);
 void endpwent(void);
 ```
 
+[例子](./use_pwd.c)
+
 #### 6.3 阴影口令
 
 **经过单向加密的口令存放在阴影口令文件中`/etc/shadow`**
@@ -48,6 +50,8 @@ struct spwd *getspent(void);
 void setspent(void);
 void endspent(void);
 ```
+
+[例子](./use_sd.c)
 
 #### 6.4 组文件
 
