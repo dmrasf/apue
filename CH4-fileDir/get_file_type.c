@@ -1,8 +1,5 @@
-/*
- *./a.out /etc/passwd /etc /dev/log /dev/tty /var/lib/oprofile/opd_pipe /dev/sr0 /dev/cdrom
- */
-#include "../apue.h"
 #include <stdio.h>
+#include <stdlib.h>
 #include <sys/stat.h>
 
 int main(int argc, char* argv[])
@@ -14,7 +11,7 @@ int main(int argc, char* argv[])
     for (i = 1; i < argc; i++) {
         printf("%s: ", argv[i]);
         if (lstat(argv[i], &buf) < 0) {
-            err_ret("lstat error");
+            perror("lstat()");
             continue;
         }
 

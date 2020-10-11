@@ -7,7 +7,7 @@
 ```c
 #include <sys/stat.h>
 
-// 所有4个函数的返回值：若成功；返回0；若出错，返回-1
+// 所有4个函数的返回值：若成功；返回0；若出错，返回-1 并设置errno
 int stat(const char *restrict pathname, struct stat *restrict buf);
 int fstat(int fd, struct stat *buf);
 int lstat(const char *restrict pathname, struct stat *restrict buf);
@@ -17,38 +17,44 @@ int fstatat(int fd, const char *restrict pathname, struct stat *restrict buf, in
 - 返回与此命名文件有关的信息结构。
 
 **fstat**
-- 获得已在描述符fd上打开文件的有关信息。
+- 获得已在描述符`fd`上打开文件的有关信息。
 
 **lstat**
-- 类似于stat，但是当命名的文件是一个符号链接时，lstat返回该符号链接的有关信息，而不是由该符号链接引用的文件的信息。
+- 类似于`stat`，但是当命名的文件是一个符号链接时，`lstat`返回该符号链接的有关信息，而不是由该符号链接引用的文件的信息。
 
 **fstatat**
-
 - 为一个相对于当前打开目录（由fd参数指向）的路径名返回文件统计信息。
 - flag参数控制着是否跟随着一个符号链接。
-    + 当AT_SYMLINK_NOFOLLOW标志被设置时，fstatat不会跟随符号链接，而是返回符号链接本身的信息。
+    + 当`AT_SYMLINK_NOFOLLOW`标志被设置时，`fstatat`不会跟随符号链接，而是返回符号链接本身的信息。
     + 否则，在默认情况下，返回的是符号链接所指向的实际文件的信息。
-- 如果fd参数的值是AT_FDCWD，并且pathname参数是一个相对路径名， fstatat会计算相对于当前目录的pathname参数。如果pathname是一个绝对路径，fd参数就会被忽略。这两种情况下，根据flag的取值，fstatat的作用就跟stat或lstat一样
+- 如果fd参数的值是`AT_FDCWD`，并且`pathname`参数是一个相对路径名， `fstatat`会计算相对于当前目录的`pathname`参数。
+- 如果`pathname`是一个绝对路径，`fd`参数就会被忽略。
 
 #### 4.3 文件类型
 
 **文件类型包括如下几种**
-1. **普通文件（regular file）** 这是最常用的文件类型，这种文件包含了某种形式的数据。至于这种数据是文本还是二进制数据，对于UNIX内核而言并无区别。对普通文件内容的解释由处理该文件的应用程序进行。
-一个值得注意的例外是二进制可执行文件。为了执行程序，内核必须理解其格式。所有二进制可执行文件都遵循一种标准化的格式，这种格式使内核能够确定程序文本和数据的加载位置。
-2. **目录文件（directory file）** 这种文件包含了其他文件的名字以及指向与这些文件有关信息的指针。对一个目录文件具有读权限的任一进程都可以读该目录的内容，但只有内核可以直接写目录文件。进程必须使用本章介绍的函数才能更改目录。
+1. **普通文件（regular file）** 这是最常用的文件类型，这种文件包含了某种形式的数据。
+
+    *至于这种数据是文本还是二进制数据，对于UNIX内核而言并无区别。对普通文件内容的解释由处理该文件的应用程序进行。*
+
+2. **目录文件（directory file）** 这种文件包含了其他文件的名字以及指向与这些文件有关信息的指针。对一个目录文件具有读权限的任一进程都可以读该目录的内容，但只有内核可以直接写目录文件。
 3. **块特殊文件（block special file）** 这种类型的文件提供对设备（如磁盘）带缓冲的访问，每次访问以固定长度为单位进行。
 注意，FreeBSD不再支持块特殊文件。对设备的所有访问需要通过字符特殊文件进行。
 4. **字符特殊文件（character special file）** 这种类型的文件提供对设备不带缓冲的访问，每次访问长度可变。系统中的所有设备要么是字符特殊文件，要么是块特殊文件。
-5. **FIFO** 这种类型的文件用于进程间通信，有时也称为命名管道（named pipe）。15.5节将对其进行说明。
-6. **套接字（socket）** 这种类型的文件用于进程间的网络通信。套接字也可用于在一台宿主机上进程之间的非网络通信。第16章将用套接字进行进程间的通信。
-7. **符号链接（symbolic link）** 这种类型的文件指向另一个文件。4.17节将更多地描述符号链接。
+5. **FIFO** 这种类型的文件用于进程间通信，有时也称为命名管道（named pipe）。 *详情见 [第15章 进程间通信](../CH15-processCommunication)*
+6. **套接字（socket）** 这种类型的文件用于进程间的网络通信。套接字也可用于在一台宿主机上进程之间的非网络通信。 *详情见 [第16章 网络IPC 套接字](../CH16-sockets)*
+7. **符号链接（symbolic link）** 这种类型的文件指向另一个文件。
 
 #### 4.4 设置用户ID和设置组ID
 
 ![usr](./usr.png)
 
-- **实际用户ID和实际组ID** 标识我们究竟是谁。这两个字段在登录时取自口令文件中的登录项。通常，在一个登录会话期间这些值并不改变，但是超级用户进程有方法改变它们。
-- **有效用户ID、有效组ID以及附属组ID** 决定了我们的文件访问权限。
+- **实际用户ID和实际组ID** 标识我们是谁。这两个字段在登录时取自口令文件中的登录项。
+
+    *通常，在一个登录会话期间这些值并不改变，但是超级用户进程有方法改变它们。*
+
+- **有效用户ID、有效组ID以及附属组ID** 决定了我们的文件访问权限。(有些文件当前用户没有权限)
+
 - **保存的设置用户ID和保存的设置组ID** 在执行一个程序时包含了有效用户ID和有效组ID的副本。
 
     *通常，有效用户ID等于实际用户ID，有效组ID等于实际组ID。*
@@ -81,13 +87,17 @@ int fstatat(int fd, const char *restrict pathname, struct stat *restrict buf, in
 ```c
 #include <unistd.h>
 
+// 若有返回0 否则返回-1 errno被设置
 int access(const char *pathname, int mode);
+// 这里的fd和之前的意思一样 flag表示对链接文件的设置
 int faccessat(int fd, const char *pathname, int mode, int flag);
 ```
 
+[测试例子](./use_access.c)
+
 #### 4.8 函数`umask`
 
-**umask 函数为进程设置文件模式创建屏蔽字，并返回之前的值**
+**umask 函数为进程设置文件模式创建屏蔽字，并返回之前的值，很强**
 
 ```c
 #include <sys/stat.h>
@@ -95,6 +105,7 @@ int faccessat(int fd, const char *pathname, int mode, int flag);
 // mode & (~cmask) = 110 110 110 & 111 111 111 = 110 110 110
 mode_t umask(mode_t cmask);
 ```
+*`cmake`若有一位设为0，则表示不屏蔽*
 
 #### 4.9 函数`chmod`、`fchmod`和`fchmodat`
 
@@ -108,17 +119,16 @@ int chmod(const char *pathname, mode_t mode);
 int fchmod(int fd, mode_t mode);
 int fchmodat(int fd, const char *pathname, mode_t mode, int flag);
 ```
+
 - `chmod` 函数在指定的文件上进行操作。
 - `fchmod` 函数则对已打开的文件进行操作。
 - `fchmodat`函数与`chmod`函数在下面两种情况下是相同的：
-    1. `pathname`参数为绝对路径，
-    2. `fd`参数取值为`AT_FDCWD`而`pathname`参数为相对路径。
+    + `pathname`参数为绝对路径，
+    + `fd`参数取值为`AT_FDCWD`而`pathname`参数为相对路径。
 - `fchmodat`计算相对于打开目录（由`fd`参数指向）的`pathname`。
 `flag`参数可以用于改变`fchmodat`的行为，当设置了`AT_SYMLINK_NOFOLLOW`标志时，`fchmodat`并不会跟随符号链接。
 
 #### 4.10 粘着位
-
-允许针对目录设置粘着位。
 
 **如果对一个目录设置了粘着位，只有对该目录具有写权限的用户并且满足下列条件之一，才能删除或重命名该目录下的文件：**
 
@@ -126,9 +136,11 @@ int fchmodat(int fd, const char *pathname, mode_t mode, int flag);
 - 拥有此目录
 - 是超级用户
 
-    *目录/tmp 和/var/tmp 是设置粘着位的典型候选者—任何用户都可在这两个目录中创建文件。
-    任一用户（用户、组和其他）对这两个目录的权限通常都是读、写和执行。
-    但是用户不应能删除或重命名属于其他人的文件，为此在这两个目录的文件模式中都设置了粘着位。*
+* **比如** 目录`/tmp` 和`/var/tmp` 是设置粘着位的典型候选者—任何用户都可在这两个目录中创建文件。
+任一用户（用户、组和其他）对这两个目录的权限通常都是读、写和执行。
+但是用户不应能删除或重命名属于其他人的文件，为此在这两个目录的文件模式中都设置了粘着位。*
+
+可以通过`chmod`函数设置: `S_ISVIX`
 
 #### 4.11 函数`chown`、`fchown`、`fchownat`和`lchown`
 
@@ -150,6 +162,7 @@ int lchown(const char *pathname, uid_t owner, gid_t group);
 
     *在这两种情况下，如果`flag`参数中设置了`AT_SYMLINK_NOFOLLOW`标志，`fchownat`与`lchown`行为相同，如果`flag`参数中清除了`AT_SYMLINK_NOFOLLOW`标志，则`fchownat`与`chown`行为相同。*
 
+
 #### 4.12 文件长度
 
 **`st_size`** 
@@ -164,12 +177,15 @@ int lchown(const char *pathname, uid_t owner, gid_t group);
 #### 4.13 文件截断
 
 **在文件尾端处截去一些数据以缩短文件**
+
 ```c
 #include <unistd.h>
 
 int truncate(const char *pathname, off_t length);
 int ftruncate(int fd, off_t length);
 ```
+
+[例子](../CH3-fileIO/delete_line.c)
 
 #### 4.14 文件系统
 
@@ -202,6 +218,10 @@ int ftruncate(int fd, off_t length);
 **数据块**
 - 文件系统的大部分空间都用于存放数据，以构成驻留于文件系统之上的文件和目录。
 
+**例子**
+
+对一个空目录，其硬链接数为2= **. + 目录名**
+
 #### 4.15 函数`link`、`linkat`、`unlink`、`unlinkat`和`remove`
 
 ```c
@@ -213,7 +233,7 @@ int linkat(int efd, const char *existingpath, int nfd, const char *newpathm int 
 ```
 
 *当现有文件是符号链接时，由flag参数来控制linkat函数是创建指向现有符号链接的链接还是创建指向现有符号链接所指向的文件的链接。
-如果在flag参数中设置了AT_SYMLINK_FOLLOW标志，就创建指向符号链接目标的链接。
+如果在flag参数中设置了`AT_SYMLINK_FOLLOW`标志，就创建指向符号链接目标的链接。
 如果这个标志被清除了，则创建一个指向符号链接本身的链接。*
 
 ```c
@@ -261,6 +281,7 @@ int symlinkat(const char *actualapth, int fd, const char *sympath);
 ```c
 #include <unistd.h>
 
+// 读取链接
 ssize_t readlink(const char *restrict pathname, char *restrict buf, size_t bufsize);
 ssize_t readlinkat(int fd, const char* restrict pathname, char *restrict buf, size_t bufsize);
 ```
@@ -311,6 +332,8 @@ int mkdirat(int fd, const char *pathname, mode_t mode);
 int rmdir(const char *pathname);
 ```
 
+[测试例子](./use_chdir.c)
+
 #### 4.22 读目录
 
 ```c
@@ -333,6 +356,9 @@ long telldir(DIR *dp);
 
 void seekdir(DIR *dp, long loc);
 ```
+
+[测试例子](./mydu2.c)
+
 
 #### 4.23 函数`chdir`、`fchdir`和`getcwd`
 
@@ -432,4 +458,6 @@ if ( (fd = creat(path, FILE_MODE)) < 0)
 # 补充
 
 #### `glob`函数
+
+**参数解析**
 
