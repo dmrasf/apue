@@ -12,6 +12,7 @@ static jmp_buf env;
 
 int main(void)
 {
+    // __FUNCTION__ 表示正在执行的函数名称
     printf("%s() begin\n", __FUNCTION__);
     printf("%s call a() begin\n", __FUNCTION__);
     a();

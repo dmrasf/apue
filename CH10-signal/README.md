@@ -91,7 +91,7 @@ int sigpending(sigset_t *set);
 
 #### 10.14 函数`sigaction`
 
-**`signal()`容易发生信号重入：执行信号响应函数是出现其他信号**
+**`signal()`容易发生信号重入：执行信号响应函数时出现其他信号**
 
 #### 10.15 函数`sigsetjmp`和`siglongjmp`
 

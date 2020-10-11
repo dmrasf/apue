@@ -32,7 +32,7 @@ static void alrm_handler(int s)
     for (int i = 0; i < ANYTIME_MAX; i++) {
         if (timers[i] != NULL)
             if (--timers[i]->sec == 0)
-                timers[i]->handler(timers[i]->arg);
+                timers[i]->handler((void*)timers[i]->arg);
     }
 }
 
