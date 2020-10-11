@@ -25,7 +25,7 @@ void my_setbuf(FILE* fp, char* buf)
         err_sys("get stat error");
 
     if (S_ISFIFO(st.st_mode) || S_ISSOCK(st.st_mode)
-            || S_ISBLK(st.st_mode) || S_ISCHR(st.st_mode)) {
+        || S_ISBLK(st.st_mode) || S_ISCHR(st.st_mode)) {
         if (setvbuf(fp, buf, _IOLBF, BUFSIZ) != 0)
             err_sys("_IOLBF error");
     } else {

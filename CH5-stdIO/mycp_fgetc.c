@@ -1,3 +1,4 @@
+/* 使用fgetc复制:  <11-10-20, dmrasf> */
 #include <stdio.h>
 #include <stdlib.h>
 

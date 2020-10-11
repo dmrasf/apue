@@ -12,6 +12,7 @@
 #include <stdio.h>
 #include <wchar.h>
 
+// 指定流的宽度
 int fwide(FILE *fp, int mode);
 ```
 
@@ -23,17 +24,17 @@ int fwide(FILE *fp, int mode);
 
 #### 5.3 标准输入、标准输出和标准错误
 
-**这3个标准I/O流通过预定义文件指针stdin、stdout和stderr加以引用。这3个文件指针定义在头文件<stdio.h>中。**
+**这3个标准I/O流通过预定义文件指针`stdin`、`stdout`和stderr`加以引用`**
 
 #### 5.4 缓冲
 
-**标准I/O库提供缓冲的目的是尽可能减少使用read和write调用的次数**
+**标准I/O库提供缓冲的目的是尽可能减少使用`read`和`write`系统调用的次数**
 
 1. **全缓冲** 在填满I/O缓冲区后才执行实际I/O操作。
 2. **行缓冲** 当在输入和输出中遇到换行符时，标准I/O库执行I/O操作。
 3. **不带缓冲** 标准I/O库不对字符进行缓冲储存。
 
-**更改缓冲类型**
+**可以更改缓冲类型**
 
 ```c
 #include <sidio.h>
@@ -41,7 +42,7 @@ int fwide(FILE *fp, int mode);
 void setbuf(FILE *restrict fp, char *restrict buf);
 int setvbuf(FILE *restrict fp, char *restrict buf, int mode, size_t size);
 
-// 强制冲洗一个流
+// 强制冲洗一个流不管缓冲形式
 int fflush(FILE *fp);
 ```
 
@@ -196,11 +197,6 @@ int fgetpos(FILE *restrict fp, fpos_t *restrict pos);
 int fsetpos(FILE *fp, const fpos_t *pos);
 ```
 
-#### 5.11 格式化I/O
-
-
-
-
 #### 5.13 临时文件
 
 ```c
@@ -219,9 +215,11 @@ char *mkdtemp(char *template);
 int mkstemp(char *template);
 ```
 
-**mkdtemp函数创建了一个目录，该目录有一个唯一的名字；mkstemp函数创建了一个文件，该文件有一个唯一的名字。名字是通过template字符串进行选择的。这个字符串是后6位设置为XXXXXX 的路径名。函数将这些占位符替换成不同的字符来构建一个唯一的路径名。如果成功的话，这两个函数将修改template字符串反映临时文件的名字。**
+**`mkdtemp`函数创建了一个目录，该目录有一个唯一的名字；`mkstemp`函数创建了一个文件，该文件有一个唯一的名字。名字是通过template字符串进行选择的。这个字符串是后6位设置为XXXXXX 的路径名。函数将这些占位符替换成不同的字符来构建一个唯一的路径名。如果成功的话，这两个函数将修改template字符串反映临时文件的名字。**
 
 **mkstemp创建的临时文件并不会自动删除。如果希望从文件系统命名空间中删除该文件，必须自己对它解除链接**
+
+[例子](./use_mkstmp.c)
 
 #### 5.14 内存流
 
@@ -233,7 +231,7 @@ FILE *fmemopen(void *restrict buf, size_t size, const char *restrict type);
 
 自定义的缓冲区相当与内核高速缓冲区和磁盘文件
 
-**fmemopen 函数允许调用者提供缓冲区用于内存流：buf 参数指向缓冲区的开始位置，size参数指定了缓冲区大小的字节数。如果buf参数为空，fmemopen函数分配size字节数的缓冲区。在这种情况下，当流关闭时缓冲区会被释放。**
+**`fmemopen` 函数允许调用者提供缓冲区用于内存流：`buf` 参数指向缓冲区的开始位置，`size`参数指定了缓冲区大小的字节数。如果`buf`参数为空，`fmemopen`函数分配`size`字节数的缓冲区。在这种情况下，当流关闭时缓冲区会被释放。**
 
 **`type`参数**
 
@@ -277,9 +275,9 @@ int main(void)
 
 # 补充
 
-#### ferror
+#### `strerror`函数
 
-#### strerror
+**根据给的`errno`返回对应的错误信息**
 
 
 
