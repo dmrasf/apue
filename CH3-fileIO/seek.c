@@ -1,3 +1,5 @@
+// 测试lseek功能，空洞文件
+
 #include <fcntl.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -18,7 +20,7 @@ void holeSeek()
     char buf2[] = "ABCDEFGHIJ";
     int fd;
 
-    if ((fd = creat("file.hole", O_RDWR)) < 0) {
+    if ((fd = open("file.hole", O_RDWR | O_TRUNC | O_CREAT, 0644)) < 0) {
         perror("creat");
         exit(1);
     }
@@ -26,7 +28,8 @@ void holeSeek()
         perror("write");
         exit(1);
     }
-    if (lseek(fd, 20, SEEK_SET) == -1) {
+    // 增加一兆的空洞
+    if (lseek(fd, 1000*1000, SEEK_SET) == -1) {
         perror("lseek");
         exit(1);
     }

@@ -8,15 +8,10 @@
 
 int main(int argc, char* argv[])
 {
-    if (argc != 2) {
-        fprintf(stderr, "Usage...\n");
-        exit(1);
-    }
-
     int fd, newfd;
     char buf[BUFSIZE];
 
-    fd = open(argv[1], O_RDONLY);
+    fd = open("./mycp.c", O_RDONLY);
     if (fd < 0) {
         perror("open error");
         exit(1);
@@ -28,11 +23,11 @@ int main(int argc, char* argv[])
         exit(1);
     }
 
-    // 若输出相同则指向不同的文件表
+    // 若输出相同则指向相同的文件表
     lseek(fd, 20, SEEK_CUR);
     read(fd, buf, BUFSIZE);
     puts(buf);
-    lseek(newfd, 20, SEEK_CUR);
+    lseek(newfd, -BUFSIZE, SEEK_CUR);
     read(newfd, buf, BUFSIZE);
     puts(buf);
 
